@@ -1,442 +1,610 @@
+
 import streamlit as st
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
-import io
 
-# ============================================================
+# =========================================================
 # BI DIGITAL KNOWLEDGE CORNER
-# Prototype Tugas Akhir Magang - Perpustakaan Bank Indonesia
-# ============================================================
+# Prototype - bukan aplikasi resmi Bank Indonesia
+# =========================================================
 
 st.set_page_config(
     page_title="BI Digital Knowledge Corner",
     page_icon="🏦",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-# ---------------------------
-# CSS
-# ---------------------------
+# -------------------------
+# Theme / CSS
+# -------------------------
 st.markdown("""
 <style>
-    .stApp { background: #f5f8fb; }
+    :root {
+        --bi-blue: #0057A8;
+        --bi-dark: #003B73;
+        --bi-navy: #062B52;
+        --bi-light: #EAF4FF;
+        --bi-red: #E31E24;
+        --text: #18324A;
+        --muted: #63758A;
+        --card: #FFFFFF;
+        --border: #DCE7F2;
+    }
+
+    #MainMenu, footer {visibility: hidden;}
+
+    .stApp {
+        background: #F5F8FC;
+        color: var(--text);
+    }
+
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #003B73 0%, #0057A8 55%, #0875C9 100%);
+        border-right: 0;
+    }
+
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
+
+    section[data-testid="stSidebar"] .stRadio label {
+        border-radius: 10px;
+        padding: 8px 10px;
+        transition: .2s ease;
+    }
+
+    section[data-testid="stSidebar"] .stRadio label:hover {
+        background: rgba(255,255,255,.12);
+    }
+
+    .brand {
+        padding: 6px 2px 18px 2px;
+        border-bottom: 1px solid rgba(255,255,255,.20);
+        margin-bottom: 18px;
+    }
+
+    .brand-mark {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        color: #0057A8;
+        font-weight: 800;
+        font-size: 17px;
+        margin-bottom: 8px;
+        box-shadow: 0 8px 20px rgba(0,0,0,.12);
+    }
+
+    .brand-title {
+        font-size: 21px;
+        font-weight: 800;
+        line-height: 1.15;
+    }
+
+    .brand-subtitle {
+        font-size: 12px;
+        opacity: .82;
+        margin-top: 5px;
+        line-height: 1.4;
+    }
 
     .hero {
-        padding: 2.5rem 2.7rem;
-        border-radius: 22px;
-        background: linear-gradient(135deg, #083b5c 0%, #176b87 100%);
+        position: relative;
+        overflow: hidden;
+        padding: 42px 46px;
+        border-radius: 24px;
+        background:
+            radial-gradient(circle at 85% 20%, rgba(255,255,255,.18), transparent 24%),
+            linear-gradient(135deg, #003B73 0%, #0057A8 58%, #1185D4 100%);
         color: white;
-        margin-bottom: 1.5rem;
+        box-shadow: 0 16px 40px rgba(0,59,115,.16);
+        margin-bottom: 28px;
     }
-    .hero h1 { font-size: 2.5rem; margin-bottom: .5rem; }
-    .hero p { font-size: 1.05rem; margin: 0; opacity: .94; }
+
+    .hero:after {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        border: 1px solid rgba(255,255,255,.13);
+        border-radius: 50%;
+        right: -75px;
+        top: -90px;
+    }
+
+    .hero-kicker {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        opacity: .88;
+        margin-bottom: 10px;
+    }
+
+    .hero h1 {
+        font-size: 42px;
+        line-height: 1.08;
+        margin: 0;
+        color: white;
+    }
+
+    .hero p {
+        font-size: 17px;
+        line-height: 1.6;
+        max-width: 760px;
+        margin: 15px 0 0;
+        color: rgba(255,255,255,.92);
+    }
 
     .section-title {
-        color: #083b5c;
-        margin-top: 1rem;
+        font-size: 27px;
+        font-weight: 800;
+        color: #123B60;
+        margin: 8px 0 5px;
+    }
+
+    .section-subtitle {
+        color: #6B7D90;
+        margin-bottom: 18px;
     }
 
     .topic-card {
         background: white;
-        border: 1px solid #e4eaf0;
+        border: 1px solid var(--border);
         border-radius: 18px;
-        padding: 1.3rem;
-        min-height: 180px;
-        box-shadow: 0 4px 15px rgba(0,0,0,.04);
-    }
-    .topic-card h3 { color: #083b5c; }
-
-    .info-box {
-        background: #eef7fa;
-        border-left: 5px solid #176b87;
-        padding: 1rem 1.2rem;
-        border-radius: 8px;
-        margin: 1rem 0;
+        padding: 22px;
+        min-height: 175px;
+        box-shadow: 0 7px 24px rgba(30,70,110,.06);
+        transition: transform .2s ease, box-shadow .2s ease;
     }
 
-    .small-note {
-        color: #667085;
-        font-size: .88rem;
+    .topic-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(30,70,110,.12);
+    }
+
+    .topic-icon {
+        font-size: 30px;
+        margin-bottom: 8px;
+    }
+
+    .topic-title {
+        color: #064D87;
+        font-size: 21px;
+        font-weight: 800;
+        margin-bottom: 7px;
+    }
+
+    .topic-desc {
+        color: #607387;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .quick-card {
+        background: linear-gradient(180deg, #FFFFFF 0%, #F5FAFF 100%);
+        border: 1px solid #D7E7F5;
+        border-radius: 16px;
+        padding: 20px;
+        height: 100%;
+    }
+
+    .quick-icon {
+        font-size: 25px;
+    }
+
+    .quick-title {
+        font-weight: 800;
+        color: #123B60;
+        font-size: 17px;
+        margin-top: 7px;
+    }
+
+    .quick-text {
+        color: #6B7D90;
+        font-size: 13px;
+        line-height: 1.5;
+        margin-top: 4px;
+    }
+
+    .info-strip {
+        background: #EAF4FF;
+        border: 1px solid #CFE4F8;
+        border-left: 5px solid #0057A8;
+        padding: 17px 20px;
+        border-radius: 12px;
+        color: #174B78;
+        margin: 20px 0 28px;
     }
 
     .footer {
-        text-align: center;
-        color: #667085;
-        padding: 2rem 0 1rem;
-        font-size: .85rem;
+        margin-top: 45px;
+        padding: 22px 0 10px;
+        border-top: 1px solid #DCE7F2;
+        color: #718297;
+        font-size: 12px;
+        line-height: 1.6;
     }
 
-    [data-testid="stMetric"] {
-        background: white;
-        border: 1px solid #e4eaf0;
-        border-radius: 14px;
-        padding: 1rem;
+    .source-badge {
+        display: inline-block;
+        padding: 5px 9px;
+        background: #EAF4FF;
+        color: #0057A8;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    div.stButton > button {
+        border-radius: 10px;
+        border: 1px solid #C9DDED;
+        font-weight: 700;
+    }
+
+    div.stButton > button:hover {
+        border-color: #0057A8;
+        color: #0057A8;
+    }
+
+    @media (max-width: 768px) {
+        .hero { padding: 30px 24px; border-radius: 18px; }
+        .hero h1 { font-size: 30px; }
+        .hero p { font-size: 15px; }
+        .section-title { font-size: 23px; }
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------
-# Data konten
-# ---------------------------
+# -------------------------
+# Data
+# -------------------------
 TOPICS = {
-    "💰 Rupiah": {
-        "short": "Mengenal Rupiah, CBP Rupiah, dan penggunaan Rupiah.",
-        "keywords": ["rupiah", "cbp", "cinta", "bangga", "paham", "uang"],
-        "content": [
-            "Cinta Rupiah berkaitan dengan mengenali, merawat, dan menggunakan Rupiah dengan baik.",
-            "Bangga Rupiah menempatkan Rupiah sebagai simbol kedaulatan negara.",
-            "Paham Rupiah mencakup pemahaman terhadap fungsi dan karakteristik Rupiah."
-        ],
-        "source": "https://www.bi.go.id/"
+    "Rupiah": {
+        "icon": "💰",
+        "desc": "Mengenal Rupiah, Cinta Bangga Paham Rupiah, dan pengelolaan uang Rupiah.",
+        "detail": "Rupiah merupakan mata uang Republik Indonesia. Pada halaman ini, pengunjung diarahkan ke materi edukasi resmi mengenai Rupiah dan CBP Rupiah.",
+        "url": "https://www.bi.go.id/id/rupiah/default.aspx",
     },
-    "💳 Sistem Pembayaran": {
-        "short": "Mengenal QRIS, BI-FAST, dan perkembangan sistem pembayaran.",
-        "keywords": ["qris", "bi-fast", "pembayaran", "digital", "transaksi"],
-        "content": [
-            "QRIS merupakan standar QR Code pembayaran yang dikembangkan untuk mendukung interoperabilitas pembayaran.",
-            "BI-FAST merupakan infrastruktur pembayaran ritel yang mendukung transaksi secara cepat dan efisien.",
-            "Literasi sistem pembayaran juga mencakup penggunaan layanan digital secara aman."
-        ],
-        "source": "https://www.bi.go.id/"
+    "Sistem Pembayaran": {
+        "icon": "💳",
+        "desc": "Mengenal QRIS, BI-FAST, dan perkembangan sistem pembayaran Indonesia.",
+        "detail": "Informasi pengantar mengenai sistem pembayaran, digitalisasi pembayaran, serta berbagai infrastruktur pembayaran yang diselenggarakan atau diatur Bank Indonesia.",
+        "url": "https://www.bi.go.id/id/fungsi-utama/sistem-pembayaran/default.aspx",
     },
-    "📈 Stabilitas Ekonomi": {
-        "short": "Pengantar mengenai inflasi, moneter, dan stabilitas ekonomi.",
-        "keywords": ["inflasi", "moneter", "stabilitas", "ekonomi", "harga"],
-        "content": [
-            "Inflasi berkaitan dengan perubahan tingkat harga barang dan jasa secara umum.",
-            "Kebijakan moneter merupakan salah satu instrumen dalam kerangka menjaga stabilitas ekonomi.",
-            "Data ekonomi perlu dibaca berdasarkan periode dan sumber resmi."
-        ],
-        "source": "https://www.bi.go.id/"
+    "Stabilitas Ekonomi": {
+        "icon": "📈",
+        "desc": "Pengantar mengenai inflasi, moneter, nilai tukar, dan stabilitas ekonomi.",
+        "detail": "Topik ini membantu pengunjung memahami hubungan kebijakan moneter, inflasi, nilai tukar, dan stabilitas ekonomi secara sederhana.",
+        "url": "https://www.bi.go.id/id/fungsi-utama/moneter/default.aspx",
     },
-    "🌾 Ketahanan Pangan": {
-        "short": "Hubungan ketahanan pangan, harga pangan, dan stabilitas ekonomi.",
-        "keywords": ["pangan", "gnpip", "harga pangan", "pasokan"],
-        "content": [
-            "Ketersediaan pasokan dan kelancaran distribusi berhubungan dengan stabilitas harga pangan.",
-            "Pengendalian inflasi pangan membutuhkan sinergi lintas pihak.",
-            "Materi wilayah dapat ditambahkan sesuai program Bank Indonesia setempat."
-        ],
-        "source": "https://www.bi.go.id/"
+    "Ketahanan Pangan": {
+        "icon": "🌾",
+        "desc": "Informasi dan edukasi mengenai pengendalian inflasi pangan serta sinergi daerah.",
+        "detail": "Materi dapat dikembangkan dengan konten daerah, publikasi TPIP/TPID, dan sumber resmi terkait pengendalian inflasi pangan.",
+        "url": "https://www.bi.go.id/id/fungsi-utama/moneter/pengendalian-inflasi/default.aspx",
     },
-    "📊 Data & Publikasi": {
-        "short": "Pintu masuk ke statistik, laporan, kajian, dan publikasi BI.",
-        "keywords": ["data", "statistik", "publikasi", "laporan", "kajian"],
-        "content": [
-            "Statistik ekonomi dan keuangan dapat digunakan untuk memahami perkembangan ekonomi.",
-            "Publikasi BI menyediakan informasi, kajian, dan analisis ekonomi serta kebanksentralan.",
-            "Gunakan periode dan definisi indikator yang tepat ketika membaca data."
-        ],
-        "source": "https://www.bi.go.id/"
+    "Data & Publikasi": {
+        "icon": "📊",
+        "desc": "Akses cepat menuju statistik, laporan, kajian, dan publikasi Bank Indonesia.",
+        "detail": "Pengunjung dapat menggunakan Digital Knowledge Corner sebagai pintu masuk menuju data dan publikasi resmi BI.",
+        "url": "https://www.bi.go.id/id/statistik/default.aspx",
     },
-    "🏦 Kebanksentralan": {
-        "short": "Mengenal fungsi, tugas, dan isu utama kebanksentralan.",
-        "keywords": ["kebanksentralan", "bank indonesia", "moneter", "makroprudensial"],
-        "content": [
-            "Topik kebanksentralan dapat dipelajari melalui sumber resmi Bank Indonesia.",
-            "Informasi dapat dikelompokkan berdasarkan kebijakan moneter, makroprudensial, dan sistem pembayaran.",
-            "Halaman ini merupakan pengantar sebelum pengguna membaca sumber yang lebih lengkap."
-        ],
-        "source": "https://www.bi.go.id/"
-    }
+    "Kebanksentralan": {
+        "icon": "🏦",
+        "desc": "Mengenal fungsi, tugas, sejarah, dan peran Bank Indonesia sebagai bank sentral.",
+        "detail": "Materi pengantar mengenai kelembagaan, fungsi utama, sejarah, dan peran Bank Indonesia.",
+        "url": "https://www.bi.go.id/id/tentang-bi/default.aspx",
+    },
 }
 
-# ---------------------------
-# Feedback storage
-# ---------------------------
-DATA_DIR = Path("data")
-DATA_DIR.mkdir(exist_ok=True)
-FEEDBACK_FILE = DATA_DIR / "feedback.csv"
+LIBRARY_URL = "https://www.bi.go.id/id/bi-institute/Default.aspx"
 
-def save_feedback(row):
-    df_new = pd.DataFrame([row])
-    if FEEDBACK_FILE.exists():
-        df_old = pd.read_csv(FEEDBACK_FILE)
-        df = pd.concat([df_old, df_new], ignore_index=True)
-    else:
-        df = df_new
-    df.to_csv(FEEDBACK_FILE, index=False)
-
-def load_feedback():
-    if FEEDBACK_FILE.exists():
-        return pd.read_csv(FEEDBACK_FILE)
-    return pd.DataFrame()
-
-# ---------------------------
+# -------------------------
 # Sidebar
-# ---------------------------
-st.sidebar.title("🏦 BI Knowledge Corner")
-st.sidebar.caption("Prototype Digital Knowledge Corner")
+# -------------------------
+st.sidebar.markdown("""
+<div class="brand">
+    <div class="brand-mark">BI</div>
+    <div class="brand-title">Digital Knowledge Corner</div>
+    <div class="brand-subtitle">Akses cepat informasi kebanksentralan</div>
+</div>
+""", unsafe_allow_html=True)
 
 menu = st.sidebar.radio(
     "Menu",
-    [
-        "🏠 Beranda",
-        "🔎 Cari Informasi",
-        "📚 Jelajah Topik",
-        "📖 Perpustakaan BI",
-        "📝 Feedback",
-        "📊 Dashboard Evaluasi",
-        "ℹ️ Tentang"
-    ]
+    ["🏠 Beranda", "🔎 Cari Informasi", "📚 Jelajah Topik",
+     "📖 Perpustakaan BI", "📝 Feedback", "📊 Dashboard Evaluasi", "ℹ️ Tentang"],
 )
 
-# ---------------------------
+st.sidebar.markdown("---")
+st.sidebar.caption("Prototype untuk kebutuhan pengembangan dan pengujian. Bukan aplikasi resmi Bank Indonesia.")
+
+# -------------------------
+# Helper
+# -------------------------
+def footer():
+    st.markdown("""
+    <div class="footer">
+        <b>BI Digital Knowledge Corner</b><br>
+        Prototype media diseminasi informasi kebanksentralan berbasis web.<br>
+        Konten dan tautan perlu diverifikasi serta disetujui sebelum digunakan sebagai layanan resmi.
+    </div>
+    """, unsafe_allow_html=True)
+
+# -------------------------
 # Beranda
-# ---------------------------
+# -------------------------
 if menu == "🏠 Beranda":
     st.markdown("""
     <div class="hero">
-        <h1>BI Digital Knowledge Corner</h1>
+        <div class="hero-kicker">Digital Knowledge Corner</div>
+        <h1>Kenali Ekonomi,<br>Rupiah, dan Kebanksentralan.</h1>
         <p>
-        Satu pintu akses untuk mengenal ekonomi, Rupiah,
-        sistem pembayaran, dan kebanksentralan.
+            Satu pintu akses untuk menemukan informasi kebanksentralan secara
+            lebih ringkas, terarah, dan mudah dijelajahi.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    st.subheader("🎯 Jelajahi Informasi")
+    st.markdown('<div class="section-title">Jelajahi Informasi</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Pilih topik yang ingin kamu kenali.</div>', unsafe_allow_html=True)
 
     cols = st.columns(3)
-    for i, (topic, data) in enumerate(TOPICS.items()):
+    for i, (name, item) in enumerate(TOPICS.items()):
         with cols[i % 3]:
             st.markdown(f"""
             <div class="topic-card">
-                <h3>{topic}</h3>
-                <p>{data['short']}</p>
+                <div class="topic-icon">{item["icon"]}</div>
+                <div class="topic-title">{name}</div>
+                <div class="topic-desc">{item["desc"]}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.write("")
+            if st.button(f"Pelajari {name}", key=f"home_{name}", use_container_width=True):
+                st.session_state["selected_topic"] = name
+                st.session_state["menu_target"] = "📚 Jelajah Topik"
+                st.rerun()
+
+    st.markdown('<div class="section-title" style="margin-top:28px;">Akses Cepat</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Fitur utama untuk membantu perjalanan informasi pengunjung.</div>', unsafe_allow_html=True)
+
+    qcols = st.columns(4)
+    quick = [
+        ("🔎", "Cari Informasi", "Temukan topik berdasarkan kata kunci."),
+        ("📚", "Jelajah Topik", "Belajar berdasarkan kategori."),
+        ("📖", "Perpustakaan BI", "Lanjutkan ke sumber literatur BI."),
+        ("📝", "Berikan Feedback", "Bantu evaluasi dan pengembangan."),
+    ]
+    for c, (icon, title, text) in zip(qcols, quick):
+        with c:
+            st.markdown(f"""
+            <div class="quick-card">
+                <div class="quick-icon">{icon}</div>
+                <div class="quick-title">{title}</div>
+                <div class="quick-text">{text}</div>
             </div>
             """, unsafe_allow_html=True)
 
-    st.divider()
-    st.subheader("Mengapa Digital Knowledge Corner?")
     st.markdown("""
-    <div class="info-box">
-    Website ini dirancang sebagai <b>quick access point</b> untuk membantu
-    pengunjung menemukan informasi kebanksentralan secara lebih terarah,
-    ringkas, dan mudah diakses. Website tidak menggantikan aplikasi
-    perpustakaan yang telah tersedia.
+    <div class="info-strip">
+        <b>💡 Cara menggunakan:</b> pilih topik → baca ringkasan → buka sumber resmi →
+        lanjutkan eksplorasi melalui Perpustakaan BI.
     </div>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.metric("Topik", len(TOPICS))
-    with c2:
-        st.metric("Media", "Digital")
-    with c3:
-        st.metric("Fokus", "Literasi")
+    footer()
 
-# ---------------------------
-# Search
-# ---------------------------
+# -------------------------
+# Cari
+# -------------------------
 elif menu == "🔎 Cari Informasi":
-    st.title("🔎 Cari Informasi")
-    q = st.text_input(
-        "Ketik kata kunci",
-        placeholder="Contoh: QRIS, Rupiah, inflasi, BI-FAST..."
-    ).strip().lower()
+    st.markdown('<div class="section-title">🔎 Cari Informasi</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Cari topik kebanksentralan dengan kata kunci sederhana.</div>', unsafe_allow_html=True)
 
-    if q:
-        results = []
-        for topic, data in TOPICS.items():
-            text = " ".join([
-                topic,
-                data["short"],
-                " ".join(data["keywords"]),
-                " ".join(data["content"])
-            ]).lower()
-            if q in text:
-                results.append((topic, data))
-
+    query = st.text_input("Masukkan kata kunci", placeholder="Contoh: QRIS, Rupiah, inflasi, BI-FAST...")
+    if query:
+        q = query.lower()
+        results = [
+            (name, item) for name, item in TOPICS.items()
+            if q in name.lower() or q in item["desc"].lower() or q in item["detail"].lower()
+        ]
         if results:
-            st.success(f"{len(results)} topik ditemukan.")
-            for topic, data in results:
-                with st.expander(topic, expanded=True):
-                    st.write(data["short"])
-                    for x in data["content"]:
-                        st.markdown(f"- {x}")
-                    st.link_button("Buka sumber resmi BI", data["source"])
+            for name, item in results:
+                st.markdown(f"""
+                <div class="topic-card">
+                    <div class="topic-icon">{item["icon"]}</div>
+                    <div class="topic-title">{name}</div>
+                    <div class="topic-desc">{item["detail"]}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("")
+                st.link_button("Buka sumber resmi BI", item["url"])
         else:
-            st.warning("Belum ditemukan. Coba kata kunci lain.")
+            st.info("Topik belum ditemukan. Coba kata kunci lain.")
+    else:
+        st.info("Masukkan kata kunci untuk memulai pencarian.")
 
-# ---------------------------
-# Browse
-# ---------------------------
+    footer()
+
+# -------------------------
+# Jelajah Topik
+# -------------------------
 elif menu == "📚 Jelajah Topik":
-    st.title("📚 Jelajah Topik")
-    selected = st.selectbox("Pilih topik", list(TOPICS.keys()))
-    data = TOPICS[selected]
+    st.markdown('<div class="section-title">📚 Jelajah Topik</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Pilih kategori untuk membaca ringkasan dan menuju sumber resmi.</div>', unsafe_allow_html=True)
 
-    st.subheader(selected)
-    st.write(data["short"])
+    default_topic = st.session_state.get("selected_topic", list(TOPICS.keys())[0])
+    topic = st.selectbox("Pilih topik", list(TOPICS.keys()), index=list(TOPICS.keys()).index(default_topic))
 
-    st.markdown("### Materi Pengantar")
-    for x in data["content"]:
-        st.markdown(f"- {x}")
-
-    st.markdown("### 🔗 Sumber Resmi")
-    st.link_button("Bank Indonesia", data["source"])
-
-# ---------------------------
-# Library
-# ---------------------------
-elif menu == "📖 Perpustakaan BI":
-    st.title("📖 Perpustakaan Bank Indonesia")
-
-    st.markdown("""
-    <div class="info-box">
-    <b>Digital Knowledge Corner bukan pengganti aplikasi perpustakaan.</b>
-    Fungsinya adalah menjadi pintu masuk informasi dan mengarahkan pengguna
-    ke sumber/koleksi yang lebih lengkap.
+    item = TOPICS[topic]
+    st.markdown(f"""
+    <div class="hero" style="margin-top:18px;">
+        <div class="hero-kicker">{item["icon"]} Topik Pilihan</div>
+        <h1>{topic}</h1>
+        <p>{item["detail"]}</p>
     </div>
     """, unsafe_allow_html=True)
 
-    st.write("Silakan hubungkan tombol di bawah dengan URL aplikasi/katalog perpustakaan BI yang sebenarnya.")
+    st.link_button("🌐 Buka sumber resmi Bank Indonesia", item["url"])
+    st.markdown('<span class="source-badge">Sumber resmi</span>', unsafe_allow_html=True)
 
-    LIBRARY_URL = "https://www.bi.go.id/"
-    st.link_button("📚 Buka Aplikasi/Katalog Perpustakaan BI", LIBRARY_URL)
+    footer()
 
-    st.caption("Ganti LIBRARY_URL di kode setelah memperoleh URL resmi dari unit terkait.")
+# -------------------------
+# Library
+# -------------------------
+elif menu == "📖 Perpustakaan BI":
+    st.markdown('<div class="section-title">📖 Perpustakaan BI</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Lanjutkan pencarian literatur dan sumber pengetahuan melalui kanal BI.</div>', unsafe_allow_html=True)
 
-# ---------------------------
+    st.markdown("""
+    <div class="hero">
+        <div class="hero-kicker">Knowledge & Literature</div>
+        <h1>Temukan Literatur<br>dan Referensi BI.</h1>
+        <p>
+            Digital Knowledge Corner berfungsi sebagai pintu masuk informasi.
+            Untuk penelusuran koleksi yang lebih mendalam, pengunjung dapat
+            melanjutkan ke kanal Perpustakaan/BI Institute.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.link_button("📚 Buka Perpustakaan / BI Institute", LIBRARY_URL)
+
+    st.info("Catatan: tautan perpustakaan dapat diganti dengan URL katalog/aplikasi perpustakaan yang digunakan oleh unit BI setempat.")
+
+    footer()
+
+# -------------------------
 # Feedback
-# ---------------------------
+# -------------------------
 elif menu == "📝 Feedback":
-    st.title("📝 Evaluasi Pengguna")
-    st.write("Form ini digunakan untuk mengukur pengalaman pengguna setelah mencoba prototype.")
+    st.markdown('<div class="section-title">📝 Feedback Pengunjung</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Pendapat pengunjung digunakan sebagai bahan evaluasi prototype.</div>', unsafe_allow_html=True)
 
-    with st.form("feedback"):
-        role = st.selectbox(
-            "Kategori pengguna",
-            ["Mahasiswa", "Pelajar", "Pegawai", "Umum", "Lainnya"]
-        )
+    feedback_file = Path("data/feedback.csv")
+    feedback_file.parent.mkdir(exist_ok=True)
 
-        topic = st.selectbox(
-            "Topik yang paling menarik",
-            list(TOPICS.keys())
-        )
+    with st.form("feedback_form"):
+        nama = st.text_input("Nama (opsional)")
+        topik = st.selectbox("Topik yang paling menarik", list(TOPICS.keys()))
+        kemudahan = st.slider("Kemudahan menggunakan website", 1, 5, 4)
+        pencarian = st.slider("Kemudahan menemukan informasi", 1, 5, 4)
+        pemahaman = st.slider("Kemudahan memahami informasi", 1, 5, 4)
+        manfaat = st.slider("Manfaat website", 1, 5, 4)
+        tampilan = st.slider("Tampilan website", 1, 5, 4)
+        rekomendasi = st.slider("Kemungkinan merekomendasikan", 1, 5, 4)
+        komentar = st.text_area("Saran atau komentar", placeholder="Apa yang perlu diperbaiki?")
 
-        ease = st.slider("Website mudah digunakan", 1, 5, 4)
-        find_info = st.slider("Informasi mudah ditemukan", 1, 5, 4)
-        understand = st.slider("Informasi mudah dipahami", 1, 5, 4)
-        useful = st.slider("Website bermanfaat", 1, 5, 4)
-        appearance = st.slider("Tampilan mudah dipahami", 1, 5, 4)
-        recommendation = st.slider("Saya bersedia merekomendasikan website ini", 1, 5, 4)
+        submitted = st.form_submit_button("Kirim Feedback", use_container_width=True)
 
-        comment = st.text_area("Saran/komentar")
+    if submitted:
+        row = pd.DataFrame([{
+            "waktu": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "nama": nama,
+            "topik": topik,
+            "kemudahan": kemudahan,
+            "kemudahan_mencari": pencarian,
+            "kemudahan_memahami": pemahaman,
+            "manfaat": manfaat,
+            "tampilan": tampilan,
+            "rekomendasi": rekomendasi,
+            "komentar": komentar,
+        }])
 
-        submit = st.form_submit_button("Kirim Feedback")
+        if feedback_file.exists():
+            old = pd.read_csv(feedback_file)
+            new = pd.concat([old, row], ignore_index=True)
+        else:
+            new = row
 
-    if submit:
-        row = {
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "kategori_pengguna": role,
-            "topik_menarik": topic,
-            "kemudahan": ease,
-            "kemudahan_mencari": find_info,
-            "kemudahan_memahami": understand,
-            "manfaat": useful,
-            "tampilan": appearance,
-            "rekomendasi": recommendation,
-            "komentar": comment
-        }
-        save_feedback(row)
-        st.success("Feedback berhasil disimpan.")
-        st.balloons()
+        new.to_csv(feedback_file, index=False)
+        st.success("Terima kasih. Feedback berhasil disimpan.")
 
-# ---------------------------
+    footer()
+
+# -------------------------
 # Dashboard
-# ---------------------------
+# -------------------------
 elif menu == "📊 Dashboard Evaluasi":
-    st.title("📊 Dashboard Evaluasi")
+    st.markdown('<div class="section-title">📊 Dashboard Evaluasi</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-subtitle">Ringkasan feedback pengguna yang tersimpan pada aplikasi.</div>', unsafe_allow_html=True)
 
-    df = load_feedback()
-
-    if df.empty:
-        st.info("Belum ada data feedback. Lakukan uji coba terlebih dahulu.")
+    feedback_file = Path("data/feedback.csv")
+    if not feedback_file.exists():
+        st.info("Belum ada data feedback. Silakan isi form Feedback terlebih dahulu.")
     else:
-        metric_cols = [
-            "kemudahan",
-            "kemudahan_mencari",
-            "kemudahan_memahami",
-            "manfaat",
-            "tampilan",
-            "rekomendasi"
+        df = pd.read_csv(feedback_file)
+
+        numeric_cols = [
+            "kemudahan", "kemudahan_mencari", "kemudahan_memahami",
+            "manfaat", "tampilan", "rekomendasi"
         ]
 
-        means = df[metric_cols].mean()
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Responden", len(df))
+        c2.metric("Rata-rata Manfaat", f"{df['manfaat'].mean():.2f}/5")
+        c3.metric("Rata-rata Kemudahan", f"{df['kemudahan'].mean():.2f}/5")
+        c4.metric("Rata-rata Tampilan", f"{df['tampilan'].mean():.2f}/5")
 
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.metric("Jumlah Responden", len(df))
-        with c2:
-            st.metric("Rata-rata Kemudahan", f"{means['kemudahan']:.2f}/5")
-        with c3:
-            st.metric("Rata-rata Manfaat", f"{means['manfaat']:.2f}/5")
+        st.markdown("### Rata-rata Penilaian")
+        averages = df[numeric_cols].mean().sort_values(ascending=False)
+        st.bar_chart(averages)
 
-        st.subheader("📌 Rata-rata Penilaian")
-        chart = means.rename({
-            "kemudahan": "Kemudahan",
-            "kemudahan_mencari": "Pencarian",
-            "kemudahan_memahami": "Pemahaman",
-            "manfaat": "Manfaat",
-            "tampilan": "Tampilan",
-            "rekomendasi": "Rekomendasi"
-        })
-        st.bar_chart(chart)
+        st.markdown("### Topik yang Dipilih")
+        st.bar_chart(df["topik"].value_counts())
 
-        st.subheader("👥 Distribusi Pengguna")
-        st.bar_chart(df["kategori_pengguna"].value_counts())
+        st.markdown("### Komentar Pengunjung")
+        comments = df[df["komentar"].fillna("").astype(str).str.strip() != ""]
+        if len(comments):
+            st.dataframe(comments[["waktu", "topik", "komentar"]], use_container_width=True)
+        else:
+            st.info("Belum ada komentar.")
 
-        st.subheader("🔥 Topik yang Paling Menarik")
-        st.bar_chart(df["topik_menarik"].value_counts())
-
-        st.subheader("💬 Feedback Pengguna")
-        if "komentar" in df.columns:
-            comments = df[df["komentar"].fillna("").astype(str).str.strip() != ""]
-            if comments.empty:
-                st.write("Belum ada komentar.")
-            else:
-                for _, row in comments.iterrows():
-                    st.write(f"**{row['kategori_pengguna']}** — {row['komentar']}")
-
-        csv = df.to_csv(index=False).encode("utf-8")
         st.download_button(
             "⬇️ Download Data Feedback (CSV)",
-            data=csv,
-            file_name="feedback_digital_knowledge_corner.csv",
-            mime="text/csv"
+            df.to_csv(index=False).encode("utf-8"),
+            "feedback.csv",
+            "text/csv",
+            use_container_width=True,
         )
 
-# ---------------------------
-# About
-# ---------------------------
-elif menu == "ℹ️ Tentang":
-    st.title("ℹ️ Tentang Prototype")
+    footer()
+
+# -------------------------
+# Tentang
+# -------------------------
+else:
+    st.markdown('<div class="section-title">ℹ️ Tentang Digital Knowledge Corner</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="topic-card">
+        <div class="topic-title">Apa itu Digital Knowledge Corner?</div>
+        <div class="topic-desc">
+            Digital Knowledge Corner adalah prototype media berbasis web yang dirancang
+            sebagai pintu masuk cepat untuk menemukan informasi kebanksentralan.
+            Konsep ini tidak menggantikan aplikasi perpustakaan, tetapi mengarahkan
+            pengunjung dari topik populer menuju sumber dan literatur yang lebih lengkap.
+        </div>
+        <br>
+        <div class="topic-desc">
+            <b>Alur:</b> QR Code → Digital Knowledge Corner → Jelajah Topik →
+            Sumber Resmi → Perpustakaan → Feedback → Evaluasi.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("""
-    ### Tujuan
-    Digital Knowledge Corner dikembangkan sebagai prototype media pendukung
-    diseminasi informasi kebanksentralan di lingkungan perpustakaan.
+    <div class="info-strip">
+        <b>Catatan:</b> Aplikasi ini merupakan prototype untuk kebutuhan tugas akhir,
+        pengujian, dan pengembangan. Nama, logo, identitas visual, konten, dan tautan
+        resmi perlu mendapatkan persetujuan/validasi sebelum digunakan sebagai layanan resmi.
+    </div>
+    """, unsafe_allow_html=True)
 
-    ### Konsep
-    **Koleksi → Kurasi → Akses Digital → Pemahaman → Eksplorasi**
-
-    ### Batasan
-    Prototype ini bukan aplikasi resmi Bank Indonesia dan tidak menggantikan
-    sistem perpustakaan yang telah tersedia. Konten dan tautan harus diverifikasi
-    sebelum digunakan secara resmi.
-
-    ### Konsep evaluasi
-    Pengguna mencoba website → memberikan penilaian → data disimpan → dashboard
-    menampilkan hasil → hasil digunakan sebagai bahan evaluasi dan makalah.
-    """)
-
-st.markdown("""
-<div class="footer">
-BI Digital Knowledge Corner — Prototype Tugas Akhir Magang<br>
-Media pendukung diseminasi informasi kebanksentralan
-</div>
-""", unsafe_allow_html=True)
+    footer()
